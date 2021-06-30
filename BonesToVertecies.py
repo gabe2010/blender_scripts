@@ -5,7 +5,7 @@
 
 import bpy, mathutils
 
-mesh = bpy.data.objects["Rope"]
+mesh = bpy.data.objects["Plane"]
 
 userot = False
 
@@ -16,30 +16,34 @@ bpy.context.object.name = NewArmName
 armature = bpy.data.objects[NewArmName]
 
 i = 0
+offset = mathutils.Vector((0,0,0.5))#define rotation of new bone
+
 for v in mesh.data.vertices:
     edit_bones = armature.data.edit_bones
 
-    bone = edit_bones.new('Bone')
+    bone_name = f"{i}"
+    print (bone_name)
+    bone = edit_bones.new(bone_name)
+    
     # a new bone will have zero length and not be kept        
-    offset = mathutils.Vector((0,0,0.5))#define rotation of new bone
     bone.head = (v.co)# move the head
     bone.tail = (v.co + offset)# move the tail
     
     bpy.ops.object.editmode_toggle()
 
     #make a new vertex group and assign current vertex
-    group = mesh.vertex_groups.new(name = bone.name)
+    group = mesh.vertex_groups.new(name = bone_name)
     group.add([i], 1, 'REPLACE')
     i += 1
     
     #MakeConstraints
-    constraints = armature.pose.bones[(bone.name)].constraints
+    constraints = armature.pose.bones[(bone_name)].constraints
     if userot == True:                  
         constraints.new(type='COPY_ROTATION').target = mesh
         constraints["Copy Rotation"].mix_mode = 'ADD'
-        constraints["Copy Rotation"].subtarget = bone.name #assign target vertex group
+        constraints["Copy Rotation"].subtarget = bone_name #assign target vertex group
     constraints.new(type='COPY_LOCATION').target = mesh
-    constraints["Copy Location"].subtarget = bone.name #assign target vertex group
+    constraints["Copy Location"].subtarget = bone_name #assign target vertex group
     bpy.ops.object.editmode_toggle()
     
 
